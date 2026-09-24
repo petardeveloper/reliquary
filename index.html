@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE RELIQUARY</title>
+<meta name="description" content="A private gothic keepsake app for two people. Showcase build with made-up example data.">
+<meta property="og:title" content="THE RELIQUARY">
+<meta property="og:description" content="A private gothic keepsake app for two people. Showcase build with made-up example data.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230b0a10'/%3E%3Cpath d='M7 2h2v4h4v2H9v6H7V8H3V6h4z' fill='%23b8963f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="crt" aria-hidden="true"></div>
+
+<div id="login-screen">
+  <div class="login-box">
+    <p class="showcase-badge">✦ SHOWCASE BUILD ✦</p>
+    <h1 class="title">☩ THE RELIQUARY ☩</h1>
+    <p class="subtitle">· an exchange of curiosities ·</p>
+
+    <div class="login-form">
+      <p class="prompt">WHO APPROACHES THE GATE?</p>
+      <div id="user-select" class="user-select"></div>
+      <p class="prompt">SPEAK THE PASSPHRASE</p>
+      <input type="text" id="passphrase" autocomplete="off" spellcheck="false" placeholder="any word will do">
+      <button id="login-btn" class="btn btn-big">► ENTER</button>
+      <p id="login-error" class="error hidden">CHOOSE WHO YOU ARE.</p>
+      <p class="showcase-note">Two made-up people, made-up memories, no database. Pick either one and walk in. Anything you add stays in this tab until you close it.</p>
+    </div>
+
+    <div class="disclaimer">
+      <p class="disclaimer-head">A NOTE FROM THE MAKER</p>
+      <p>Originally made for a partner and me, but we have parted ways since then. The concept still rocks, so feel free to take this source code and adapt it however you want if you wish to gift your significant other something unique ^^</p>
+    </div>
+
+    <div class="memcard">
+      <span class="blink">▓</span> MEMORY CARD (SLOT 1): CHECKING...OK
+    </div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+
+  <div id="hdr">
+    <div id="showcase-strip">
+      <span class="strip-tag">SHOWCASE</span>
+      <span class="strip-long">example data between two made-up people</span>
+      <button id="reset-btn" class="strip-btn">↺ RESET</button>
+    </div>
+    <header id="topbar">
+      <span class="title-small">☩ THE RELIQUARY ☩</span>
+      <div id="mode-switch">
+        <button id="mode-board" class="btn btn-tiny selected">✦ BOARD</button>
+        <button id="mode-map" class="btn btn-tiny">⬡ MAP</button>
+        <button id="mode-vigil" class="btn btn-tiny">♰ VIGIL</button>
+        <button id="mode-chron" class="btn btn-tiny">✥ CHRONICLE</button>
+      </div>
+      <span id="whoami"></span>
+      <button id="logout-btn" class="btn btn-tiny">✕ LEAVE</button>
+    </header>
+    <nav id="filter-bar" aria-label="filter by tag"></nav>
+  </div>
+
+  <main id="halves"></main>
+
+  <section id="map-view" class="hidden">
+    <div id="map-wrap">
+      <div id="map"></div>
+      <div id="map-tools">
+        <button data-tool="browse" class="btn btn-tiny tool-btn selected">☈ ROAM</button>
+        <button data-tool="pin" class="btn btn-tiny tool-btn">✚ PIN</button>
+        <button data-tool="hex" class="btn btn-tiny tool-btn">⬡ CHART</button>
+      </div>
+      <div id="map-hint"></div>
+    </div>
+    <aside id="wishlist">
+      <div class="wish-head"><span class="sigil">†</span> PILGRIMAGES <span class="sigil">†</span></div>
+      <div id="wish-list">
+        <p class="feed-empty">· no places marked yet ·</p>
+      </div>
+      <div id="wish-foot"></div>
+    </aside>
+  </section>
+
+  <section id="vigil-view" class="hidden">
+    <p id="vigil-hint">light the limb that wants tending. the votive below burns for a day</p>
+    <div id="effigies"></div>
+  </section>
+
+  <section id="chron-view" class="hidden">
+    <aside id="trips-panel">
+      <div class="wish-head"><span class="sigil">☾</span> VOYAGES <span class="sigil">☾</span></div>
+      <div id="trip-list">
+        <p class="feed-empty">· no voyages chronicled yet ·</p>
+      </div>
+      <div id="trips-foot">
+        <button id="new-trip" class="btn btn-tiny">✚ NEW VOYAGE</button>
+      </div>
+    </aside>
+    <div id="gallery-panel">
+      <div id="gallery-head" class="hidden">
+        <span id="gallery-title"></span>
+        <div class="gallery-actions">
+          <label class="btn btn-tiny" for="trip-photos">✚ PHOTOS</label>
+          <input type="file" id="trip-photos" accept="image/*" multiple class="hidden">
+          <button id="add-video" class="btn btn-tiny">▶ VIDEO LINK</button>
+          <button id="del-trip" class="btn btn-tiny">✕ UNMAKE</button>
+        </div>
+      </div>
+      <div id="gallery">
+        <p class="feed-empty">· choose a voyage ·</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="trip-dialog" class="hidden dialog-overlay">
+    <div class="pin-dialog-box">
+      <p class="prompt">NAME THE VOYAGE</p>
+      <input type="text" id="trip-title" maxlength="80" placeholder="the road to...">
+      <p class="prompt">WHEN WAS IT</p>
+      <input type="text" id="trip-season" maxlength="40" placeholder="e.g. OCT 2025">
+      <div class="dialog-btns">
+        <button id="trip-save" class="btn">► CHRONICLE IT</button>
+        <button id="trip-cancel" class="btn">✕ NEVERMIND</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="video-dialog" class="hidden dialog-overlay">
+    <div class="pin-dialog-box">
+      <p class="prompt">LINK TO THE MOVING PICTURE</p>
+      <input type="url" id="video-url" maxlength="500" placeholder="https://...">
+      <p class="prompt">CAPTION (OPTIONAL)</p>
+      <input type="text" id="video-caption" maxlength="140" placeholder="...">
+      <div class="dialog-btns">
+        <button id="video-save" class="btn">► KEEP IT</button>
+        <button id="video-cancel" class="btn">✕ NEVERMIND</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lightbox" class="hidden">
+    <img id="lightbox-img" alt="">
+  </div>
+
+  <div id="pin-dialog" class="hidden dialog-overlay">
+    <div class="pin-dialog-box">
+      <p class="prompt">NAME THIS PLACE</p>
+      <input type="text" id="pin-name" maxlength="80" placeholder="the black chapel of...">
+      <div class="dialog-btns">
+        <button id="pin-save" class="btn">► MARK IT</button>
+        <button id="pin-cancel" class="btn">✕ NEVERMIND</button>
+      </div>
+    </div>
+  </div>
+
+  <footer id="composer">
+    <div class="composer-inner">
+      <div id="tag-row" class="tag-row"></div>
+      <div class="input-row">
+        <textarea id="post-text" rows="2" maxlength="4000"
+          placeholder="offer a curiosity..."></textarea>
+        <div class="side-btns">
+          <label class="btn btn-tiny" for="post-image" title="attach an image">✚ IMG</label>
+          <input type="file" id="post-image" accept="image/*" class="hidden">
+          <button id="send-btn" class="btn btn-tiny send">► SEND</button>
+        </div>
+      </div>
+      <div id="image-preview-row" class="hidden">
+        <img id="image-preview" alt="attached image preview">
+        <button id="remove-image" class="btn btn-tiny">✕</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<div id="toast" class="hidden" role="status"></div>
+
+<template id="post-template">
+  <article class="post">
+    <div class="post-head">
+      <span class="post-tag"></span>
+      <span class="post-date"></span>
+    </div>
+    <img class="post-img hidden" alt="">
+    <p class="post-body"></p>
+    <div class="notes">
+      <button class="note-toggle">✎ NOTES (0)</button>
+      <div class="note-wrap hidden">
+        <div class="note-list"></div>
+        <div class="note-compose">
+          <input type="text" class="note-input" maxlength="1000" placeholder="scrawl in the margin...">
+          <button class="note-send btn btn-tiny">►</button>
+        </div>
+      </div>
+    </div>
+  </article>
+</template>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/h3-js@4.1.0/dist/h3-js.umd.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
